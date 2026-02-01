@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pinterest Pin Creator | Claudia Weber Tools</title>
+    <meta name="description" content="Create stunning Pinterest pins with custom text overlays and professional templates">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📌</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #E60023 0%, #BD081C 100%);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 1rem; }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .header p { opacity: 0.9; font-size: 1.1rem; }
+        
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 400px 300px;
+            gap: 1rem;
+            min-height: 600px;
+        }
+        
+        .canvas-area {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .controls-panel, .templates-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #ffffff;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-size: 0.9rem;
+        }
+        
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .button {
+            background: #ffffff;
+            color: #E60023;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin: 0.5rem 0;
+            transition: all 0.2s;
+        }
+        
+        .button:hover {
+            background: #f0f0f0;
+            transform: translateY(-1px);
+        }
+        
+        .button.secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+        }
+        
+        .canvas-container {
+            position: relative;
+            display: inline-block;
+            margin: 1rem auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        #pinCanvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            cursor: crosshair;
+        }
+        
+        .template-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+        
+        .template-item {
+            aspect-ratio: 2/3;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        
+        .template-item:hover, .template-item.active {
+            border-color: #ffffff;
+            transform: scale(1.05);
+        }
+        
+        .size-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .size-option {
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        
+        .size-option:hover, .size-option.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #ffffff;
+        }
+        
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .color-swatch {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.2s;
+        }
+        
+        .color-swatch:hover, .color-swatch.active {
+            border-color: #ffffff;
+            transform: scale(1.1);
+        }
+        
+        @media (max-width: 1200px) {
+            .workspace {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .controls-panel, .templates-panel {
+                order: -1;
+            }
+        }
+        
+        .stats {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffffff;
+        }
+        
+        .stat-label {
+            opacity: 0.8;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📌 Pinterest Pin Creator</h1>
+            <p>Create stunning Pinterest pins with custom text overlays and professional templates</p>
+        </header>
+        
+        <div class="workspace">
+            <div class="canvas-area">
+                <div class="canvas-container">
+                    <canvas id="pinCanvas" width="400" height="600"></canvas>
+                </div>
+                <button class="button" onclick="downloadPin()">📥 Download Pin</button>
+                <button class="button secondary" onclick="clearCanvas()">🗑️ Clear Canvas</button>
+            </div>
+            
+            <div class="controls-panel">
+                <h3 class="panel-title">Pin Settings</h3>
+                
+                <div class="form-group">
+                    <label>Pin Size:</label>
+                    <div class="size-selector">
+                        <div class="size-option active" onclick="setCanvasSize(400, 600)">
+                            Standard<br><small>400x600</small>
+                        </div>
+                        <div class="size-option" onclick="setCanvasSize(500, 750)">
+                            Large<br><small>500x750</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="titleText">Main Title:</label>
+                    <input type="text" id="titleText" class="form-control" placeholder="Enter pin title" oninput="updatePin()">
+                </div>
+                
+                <div class="form-group">
+                    <label for="subtitleText">Subtitle:</label>
+                    <input type="text" id="subtitleText" class="form-control" placeholder="Enter subtitle" oninput="updatePin()">
+                </div>
+                
+                <div class="form-group">
+                    <label for="fontSize">Font Size:</label>
+                    <input type="range" id="fontSize" class="form-control" min="20" max="80" value="40" oninput="updatePin()">
+                </div>
+                
+                <div class="form-group">
+                    <label>Text Color:</label>
+                    <div class="color-palette">
+                        <div class="color-swatch active" style="background: #ffffff" onclick="setTextColor('#ffffff')"></div>
+                        <div class="color-swatch" style="background: #000000" onclick="setTextColor('#000000')"></div>
+                        <div class="color-swatch" style="background: #E60023" onclick="setTextColor('#E60023')"></div>
+                        <div class="color-swatch" style="background: #1DA1F2" onclick="setTextColor('#1DA1F2')"></div>
+                        <div class="color-swatch" style="background: #4267B2" onclick="setTextColor('#4267B2')"></div>
+                        <div class="color-swatch" style="background: #FFD700" onclick="setTextColor('#FFD700')"></div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="imageUpload">Background Image:</label>
+                    <input type="file" id="imageUpload" class="form-control" accept="image/*" onchange="uploadImage(event)">
+                </div>
+            </div>
+            
+            <div class="templates-panel">
+                <h3 class="panel-title">Quick Templates</h3>
+                <div class="template-grid">
+                    <div class="template-item active" onclick="applyTemplate('home-decor')">
+                        🏡<br>Home<br>Decor
+                    </div>
+                    <div class="template-item" onclick="applyTemplate('fashion')">
+                        👗<br>Fashion<br>Style
+                    </div>
+                    <div class="template-item" onclick="applyTemplate('food')">
+                        🍳<br>Food &<br>Recipes
+                    </div>
+                    <div class="template-item" onclick="applyTemplate('business')">
+                        💼<br>Business<br>Tips
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-top: 1rem;">
+                    <button class="button secondary" onclick="applyTemplate('gradient')">🎨 Gradient Background</button>
+                    <button class="button secondary" onclick="applyTemplate('minimal')">✨ Minimal Design</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <h3>Pinterest Pin Creator Stats</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="pinsCreated">0</div>
+                    <div class="stat-label">Pins Created</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">1000x1500</div>
+                    <div class="stat-label">Optimized Size</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">6</div>
+                    <div class="stat-label">Templates</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">∞</div>
+                    <div class="stat-label">Possibilities</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let canvas, ctx;
+        let currentTemplate = 'home-decor';
+        let textColor = '#ffffff';
+        let backgroundImage = null;
+        let pinsCreatedCount = 0;
+        
+        // Initialize canvas
+        document.addEventListener('DOMContentLoaded', function() {
+            canvas = document.getElementById('pinCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Load pins created count from localStorage
+            pinsCreatedCount = parseInt(localStorage.getItem('pinsCreated') || '0');
+            document.getElementById('pinsCreated').textContent = pinsCreatedCount;
+            
+            // Initial draw
+            updatePin();
+        });
+        
+        function setCanvasSize(width, height) {
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Update active size option
+            document.querySelectorAll('.size-option').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            updatePin();
+        }
+        
+        function updatePin() {
+            // Clear canvas
+            ctx.fillStyle = getBackgroundGradient();
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw background image if available
+            if (backgroundImage) {
+                drawBackgroundImage();
+            }
+            
+            // Add overlay for better text readability
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw text
+            drawText();
+        }
+        
+        function getBackgroundGradient() {
+            const templates = {
+                'home-decor': 'linear-gradient(45deg, #667eea, #764ba2)',
+                'fashion': 'linear-gradient(45deg, #f093fb, #f5576c)',
+                'food': 'linear-gradient(45deg, #ffeaa7, #fab1a0)',
+                'business': 'linear-gradient(45deg, #00b894, #00cec9)',
+                'gradient': 'linear-gradient(45deg, #667eea, #764ba2)',
+                'minimal': '#ffffff'
+            };
+            
+            // Create gradient
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            
+            switch(currentTemplate) {
+                case 'home-decor':
+                    gradient.addColorStop(0, '#667eea');
+                    gradient.addColorStop(1, '#764ba2');
+                    break;
+                case 'fashion':
+                    gradient.addColorStop(0, '#f093fb');
+                    gradient.addColorStop(1, '#f5576c');
+                    break;
+                case 'food':
+                    gradient.addColorStop(0, '#ffeaa7');
+                    gradient.addColorStop(1, '#fab1a0');
+                    break;
+                case 'business':
+                    gradient.addColorStop(0, '#00b894');
+                    gradient.addColorStop(1, '#00cec9');
+                    break;
+                case 'minimal':
+                    return '#ffffff';
+                default:
+                    gradient.addColorStop(0, '#667eea');
+                    gradient.addColorStop(1, '#764ba2');
+            }
+            
+            return gradient;
+        }
+        
+        function drawBackgroundImage() {
+            const aspectRatio = backgroundImage.width / backgroundImage.height;
+            const canvasAspectRatio = canvas.width / canvas.height;
+            
+            let drawWidth, drawHeight, offsetX, offsetY;
+            
+            if (aspectRatio > canvasAspectRatio) {
+                // Image is wider
+                drawHeight = canvas.height;
+                drawWidth = drawHeight * aspectRatio;
+                offsetX = (canvas.width - drawWidth) / 2;
+                offsetY = 0;
+            } else {
+                // Image is taller
+                drawWidth = canvas.width;
+                drawHeight = drawWidth / aspectRatio;
+                offsetX = 0;
+                offsetY = (canvas.height - drawHeight) / 2;
+            }
+            
+            ctx.drawImage(backgroundImage, offsetX, offsetY, drawWidth, drawHeight);
+        }
+        
+        function drawText() {
+            const title = document.getElementById('titleText').value || 'Your Title Here';
+            const subtitle = document.getElementById('subtitleText').value || '';
+            const fontSize = document.getElementById('fontSize').value;
+            
+            // Set font properties
+            ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+            ctx.fillStyle = textColor;
+            ctx.textAlign = 'center';
+            ctx.strokeStyle = textColor === '#ffffff' ? '#000000' : '#ffffff';
+            ctx.lineWidth = 2;
+            
+            // Draw title
+            const titleY = canvas.height * 0.3;
+            ctx.strokeText(title, canvas.width / 2, titleY);
+            ctx.fillText(title, canvas.width / 2, titleY);
+            
+            // Draw subtitle
+            if (subtitle) {
+                ctx.font = `${fontSize * 0.6}px Arial, sans-serif`;
+                const subtitleY = titleY + (fontSize * 1.2);
+                ctx.strokeText(subtitle, canvas.width / 2, subtitleY);
+                ctx.fillText(subtitle, canvas.width / 2, subtitleY);
+            }
+        }
+        
+        function setTextColor(color) {
+            textColor = color;
+            
+            // Update active color swatch
+            document.querySelectorAll('.color-swatch').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            updatePin();
+        }
+        
+        function applyTemplate(template) {
+            currentTemplate = template;
+            
+            // Update active template
+            document.querySelectorAll('.template-item').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Set default text for templates
+            const templates = {
+                'home-decor': { title: 'Home Decor Ideas', subtitle: 'Transform Your Space' },
+                'fashion': { title: 'Fashion Trends', subtitle: 'Style Inspiration' },
+                'food': { title: 'Delicious Recipe', subtitle: 'Easy & Tasty' },
+                'business': { title: 'Business Tips', subtitle: 'Grow Your Success' }
+            };
+            
+            if (templates[template]) {
+                document.getElementById('titleText').value = templates[template].title;
+                document.getElementById('subtitleText').value = templates[template].subtitle;
+            }
+            
+            updatePin();
+        }
+        
+        function uploadImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        backgroundImage = img;
+                        updatePin();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function downloadPin() {
+            // Create download link
+            const link = document.createElement('a');
+            link.download = `pinterest-pin-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+            
+            // Update counter
+            pinsCreatedCount++;
+            localStorage.setItem('pinsCreated', pinsCreatedCount.toString());
+            document.getElementById('pinsCreated').textContent = pinsCreatedCount;
+        }
+        
+        function clearCanvas() {
+            backgroundImage = null;
+            document.getElementById('titleText').value = '';
+            document.getElementById('subtitleText').value = '';
+            document.getElementById('imageUpload').value = '';
+            updatePin();
+        }
+    </script>
+</body>
+</html>
